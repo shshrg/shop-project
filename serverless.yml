@@ -13,7 +13,6 @@ provider:
   # domain: api.example.com
 
 functions:
-  api:
-    handler: handler.handler
-    events:
-      - httpApi: "*"
+  hello:
+    handler: handler.hello
+
