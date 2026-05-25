@@ -1,8 +1,7 @@
-const serverless = require("serverless-http");
-const express = require("express");
-const app = express();
+import ServerlessHttp from "serverless-http";
 
-exports.hello = async () => {
+export const hello = async () => {
   return "Hello World!";
 };
+
 
