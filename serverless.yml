@@ -29,12 +29,12 @@ functions:
       - httpApi:
           path: /product/{id}
           method: get
-  # updateProduct:
-  #   handler: handler.updateProduct
-  #   events:
-  #     - httpApi:
-  #         path: /products
-  #         method: put
+  updateProduct:
+    handler: handler.updateProduct
+    events:
+      - httpApi:
+          path: /product/{id}
+          method: put
   # deleteProduct:
   #   handler: handler.deleteProduct
   #   events:

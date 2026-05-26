@@ -1,5 +1,3 @@
-// import ServerlessHttp from "serverless-http";
-import { v4 } from 'uuid'
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { GetCommand, PutCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
@@ -13,7 +11,6 @@ export const createProduct = async (event) => {
   
   const newProduct = {
       ...reqBody,
-      id: v4(),
   };
 
   const command = new PutCommand({
@@ -53,3 +50,42 @@ export const readProduct = async (event) => {
     body: JSON.stringify(result.Item)
   };
 };
+
+export const updateProduct = async (event) => {
+  const id = event.pathParameters?.id;
+  const reqBody = JSON.parse(event.body);
+
+  const getCommand = new GetCommand({
+    TableName: tableName,
+    Key: {
+      id: id
+    }
+  });
+
+  const result = await docClient.send(getCommand);
+
+  if (!result.Item) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({ error: 'product not found' })
+    };
+  };
+
+  const newProduct = {
+      ...reqBody,
+      id: id
+  };
+
+  const putCommand = new PutCommand({
+    TableName: tableName,
+    Item: newProduct
+  });
+
+  const response = await docClient.send(putCommand);
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify(newProduct),
+  };
+
+}
