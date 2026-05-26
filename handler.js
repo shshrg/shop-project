@@ -1,10 +1,33 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { GetCommand, PutCommand, DeleteCommand, ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
+
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 const tableName = 'ProductsTable';
 
+const getProductById = async (productId) => {
+  const command = new GetCommand({
+    TableName: tableName,
+    Key: {
+      id: productId
+    }
+  });
+
+  const response = await docClient.send(command);
+
+  return response.Item;
+};
+
+const putProduct = async (product) => {
+  const command = new PutCommand({
+    TableName: tableName,
+    Item: product
+  });
+
+  const response = await docClient.send(command);
+  return response;
+};
 
 export const createProduct = async (event) => {
   const reqBody = JSON.parse(event.body);
@@ -13,12 +36,7 @@ export const createProduct = async (event) => {
       ...reqBody,
   };
 
-  const command = new PutCommand({
-    TableName: tableName,
-    Item: newProduct
-  });
-
-  const response = await docClient.send(command);
+  await putProduct(newProduct);
 
   return {
     statusCode: 201,
@@ -29,16 +47,9 @@ export const createProduct = async (event) => {
 export const readProduct = async (event) => {
   const id = event.pathParameters?.id;
 
-  const command = new GetCommand({
-    TableName: tableName,
-    Key: {
-      id: id
-    }
-  });
+  const result = await getProductById(id);
 
-  const result = await docClient.send(command);
-
-  if (!result.Item) {
+  if (!result) {
     return {
       statusCode: 404,
       body: JSON.stringify({ error: 'product not found' })
@@ -47,7 +58,7 @@ export const readProduct = async (event) => {
 
   return {
     statusCode: 200,
-    body: JSON.stringify(result.Item)
+    body: JSON.stringify(result)
   };
 };
 
@@ -55,16 +66,9 @@ export const updateProduct = async (event) => {
   const id = event.pathParameters?.id;
   const reqBody = JSON.parse(event.body);
 
-  const getCommand = new GetCommand({
-    TableName: tableName,
-    Key: {
-      id: id
-    }
-  });
+  const result = await getProductById(id);
 
-  const result = await docClient.send(getCommand);
-
-  if (!result.Item) {
+  if (!result) {
     return {
       statusCode: 404,
       body: JSON.stringify({ error: 'product not found' })
@@ -76,12 +80,7 @@ export const updateProduct = async (event) => {
       id: id
   };
 
-  const putCommand = new PutCommand({
-    TableName: tableName,
-    Item: newProduct
-  });
-
-  const response = await docClient.send(putCommand);
+  await putProduct(newProduct);
 
   return {
     statusCode: 200,
@@ -92,16 +91,9 @@ export const updateProduct = async (event) => {
 
 export const deleteProduct = async (event) => {
   const id = event.pathParameters?.id;
-  const getCommand = new GetCommand({
-    TableName: tableName,
-    Key: {
-      id: id
-    }
-  });
+  const result = await getProductById(id);
 
-  const result = await docClient.send(getCommand);
-
-  if (!result.Item) {
+  if (!result) {
     return {
       statusCode: 404,
       body: JSON.stringify({ error: 'product not found' })
