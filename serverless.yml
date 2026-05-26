@@ -35,12 +35,12 @@ functions:
       - httpApi:
           path: /product/{id}
           method: put
-  # deleteProduct:
-  #   handler: handler.deleteProduct
-  #   events:
-  #     - httpApi:
-  #         path: /products
-  #         method: delete
+  deleteProduct:
+    handler: handler.deleteProduct
+    events:
+      - httpApi:
+          path: /product/{id}
+          method: delete
 
 resources:
   Resources:

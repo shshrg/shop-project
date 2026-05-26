@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { GetCommand, PutCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, DeleteCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -88,4 +88,37 @@ export const updateProduct = async (event) => {
     body: JSON.stringify(newProduct),
   };
 
-}
+};
+
+export const deleteProduct = async (event) => {
+  const id = event.pathParameters?.id;
+  const getCommand = new GetCommand({
+    TableName: tableName,
+    Key: {
+      id: id
+    }
+  });
+
+  const result = await docClient.send(getCommand);
+
+  if (!result.Item) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({ error: 'product not found' })
+    };
+  };
+
+  const deleteCommand = new DeleteCommand({
+    TableName: tableName,
+    Key: {
+      id: id
+    }
+  });
+
+  const response = await docClient.send(deleteCommand);
+
+  return {
+    statusCode: 204,
+    body: ""
+  };
+};
