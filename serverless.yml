@@ -41,6 +41,12 @@ functions:
       - httpApi:
           path: /product/{id}
           method: delete
+  listProducts:
+    handler: handler.listProducts
+    events:
+      - httpApi:
+          path: /products
+          method: get
 
 resources:
   Resources:

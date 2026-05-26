@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { GetCommand, PutCommand, DeleteCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, DeleteCommand, ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -120,5 +120,19 @@ export const deleteProduct = async (event) => {
   return {
     statusCode: 204,
     body: ""
+  };
+};
+
+
+export const listProducts = async (event) => {
+  const command = new ScanCommand({
+    TableName: tableName
+  });
+
+  const response = await docClient.send(command);
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify(response.Items)
   };
 };
