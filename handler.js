@@ -5,6 +5,9 @@ import { GetCommand, PutCommand, DeleteCommand, ScanCommand, DynamoDBDocumentCli
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 const tableName = 'ProductsTable';
+const headers = {
+  'content-type': 'application/json'
+};
 
 const getProductById = async (productId) => {
   const command = new GetCommand({
@@ -40,6 +43,7 @@ export const createProduct = async (event) => {
 
   return {
     statusCode: 201,
+    headers,
     body: JSON.stringify(newProduct),
   };
 };
@@ -52,12 +56,14 @@ export const readProduct = async (event) => {
   if (!result) {
     return {
       statusCode: 404,
+      headers,
       body: JSON.stringify({ error: 'product not found' })
     };
   };
 
   return {
     statusCode: 200,
+    headers,
     body: JSON.stringify(result)
   };
 };
@@ -71,6 +77,7 @@ export const updateProduct = async (event) => {
   if (!result) {
     return {
       statusCode: 404,
+      headers,
       body: JSON.stringify({ error: 'product not found' })
     };
   };
@@ -84,6 +91,7 @@ export const updateProduct = async (event) => {
 
   return {
     statusCode: 200,
+    headers,
     body: JSON.stringify(newProduct),
   };
 
@@ -96,6 +104,7 @@ export const deleteProduct = async (event) => {
   if (!result) {
     return {
       statusCode: 404,
+      headers,
       body: JSON.stringify({ error: 'product not found' })
     };
   };
@@ -125,6 +134,7 @@ export const listProducts = async (event) => {
 
   return {
     statusCode: 200,
+    headers,
     body: JSON.stringify(response.Items)
   };
 };
