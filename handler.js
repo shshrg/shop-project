@@ -1,5 +1,6 @@
+import { v4 } from 'uuid'
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { GetCommand, PutCommand, DeleteCommand, ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 
 const client = new DynamoDBClient({});
@@ -32,10 +33,47 @@ const putProduct = async (product) => {
   return response;
 };
 
+
+export const authorizerFunc = async (event) => {
+  const authToken = event.headers?.authorization;
+  console.log(authToken);
+
+  if (authToken === 'adminToken') {
+    console.log('allowed');
+    return {
+      'principalId': 'ADMIN',
+      'policyDocument': {
+        'Version': '2012-10-17',
+        'Statement': [{
+          'Action': 'execute-api:Invoke',
+          'Effect': 'Allow',
+          'Resource': event.routeArn
+        }]
+      }
+    };
+  }
+
+  console.log('denied')
+  return {
+      'principalId': 'USER',
+      'policyDocument': {
+        'Version': '2012-10-17',
+        'Statement': [{
+          'Action': 'execute-api:Invoke',
+          'Effect': 'Deny',
+          'Resource': event.routeArn
+        }]
+      }
+    };
+  
+};
+
+
 export const createProduct = async (event) => {
   const reqBody = JSON.parse(event.body);
   
   const newProduct = {
+      id: v4(),
       ...reqBody,
   };
 

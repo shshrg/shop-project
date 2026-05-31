@@ -4,6 +4,11 @@ service: shop
 provider:
   name: aws
   runtime: nodejs20.x
+  httpApi:
+    authorizers:
+      customAuthorizer:
+        type: request
+        functionName: authorizerFunc
   iam:
     role:
       statements:
@@ -23,30 +28,37 @@ functions:
       - httpApi:
           path: /products
           method: post
+          authorizer: customAuthorizer
   readProduct:
     handler: handler.readProduct
     events:
       - httpApi:
           path: /product/{id}
           method: get
+          authorizer: customAuthorizer
   updateProduct:
     handler: handler.updateProduct
     events:
       - httpApi:
           path: /product/{id}
           method: put
+          authorizer: customAuthorizer
   deleteProduct:
     handler: handler.deleteProduct
     events:
       - httpApi:
           path: /product/{id}
           method: delete
+          authorizer: customAuthorizer
   listProducts:
     handler: handler.listProducts
     events:
       - httpApi:
           path: /products
           method: get
+          authorizer: customAuthorizer
+  authorizerFunc:
+    handler: handler.authorizerFunc
 
 resources:
   Resources:
