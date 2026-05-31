@@ -18,8 +18,10 @@ provider:
             - "dynamodb:GetItem"
             - "dynamodb:DeleteItem"
             - "dynamodb:Scan"
+            - "dynamodb:Query"
           Resource:
             - { "Fn::GetAtt": ["ProductsTable", "Arn"] }
+            - { "Fn::Join": ["/", [{ "Fn::GetAtt": ["ProductsTable", "Arn"] }, "index", "CategoryIndex"]] }
 
 functions:
   createProduct:
@@ -69,8 +71,18 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
+          - AttributeName: category
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: CategoryIndex
+            KeySchema:
+              - AttributeName: category
+                KeyType: HASH
+            Projection: 
+              ProjectionType: ALL
+
         BillingMode: PAY_PER_REQUEST
 

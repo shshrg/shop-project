@@ -1,6 +1,6 @@
 import { v4 } from 'uuid'
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand, QueryCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 
 const client = new DynamoDBClient({});
@@ -164,6 +164,28 @@ export const deleteProduct = async (event) => {
 
 
 export const listProducts = async (event) => {
+  const category = event.queryStringParameters?.category;
+
+  console.log(category);
+
+  if (category) {
+    const command = new QueryCommand({
+      TableName: tableName,
+      IndexName: 'CategoryIndex',
+      ExpressionAttributeValues: {
+        ":cat": category
+      },
+      KeyConditionExpression: "category = :cat"
+      
+    })
+    const response = await docClient.send(command);
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(response.Items)
+    };
+  }
+
   const command = new ScanCommand({
     TableName: tableName
   });
