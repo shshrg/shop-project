@@ -24,16 +24,6 @@ const getProductById = async (productId) => {
   return response.Item;
 };
 
-// const putProduct = async (product) => {
-//   const command = new PutCommand({
-//     TableName: tableName,
-//     Item: product
-//   });
-
-//   const response = await docClient.send(command);
-//   return response;
-// };
-
 
 export const authorizerFunc = async (event) => {
   const authToken = event.headers?.authorization;
@@ -72,13 +62,6 @@ export const authorizerFunc = async (event) => {
 
 export const createProduct = async (event) => {
   const reqBody = JSON.parse(event.body);
-
-  if (!reqBody['name'] || typeof reqBody['name'] != 'string') {
-    return {
-      statusCode: 400,
-      body: 'Invalid data'
-    };
-  }
   
   const newProduct = {
       id: v4()
