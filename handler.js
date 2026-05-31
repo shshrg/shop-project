@@ -9,7 +9,7 @@ const tableName = 'ProductsTable';
 const headers = {
   'content-type': 'application/json'
 };
-const allowedFields = ['name', 'description', 'price', 'category', 'createDate']
+const allowedFields = ['name', 'description', 'price', 'category', 'createDate'];
 
 const getProductById = async (productId) => {
   const command = new GetCommand({
@@ -24,15 +24,15 @@ const getProductById = async (productId) => {
   return response.Item;
 };
 
-const putProduct = async (product) => {
-  const command = new PutCommand({
-    TableName: tableName,
-    Item: product
-  });
+// const putProduct = async (product) => {
+//   const command = new PutCommand({
+//     TableName: tableName,
+//     Item: product
+//   });
 
-  const response = await docClient.send(command);
-  return response;
-};
+//   const response = await docClient.send(command);
+//   return response;
+// };
 
 
 export const authorizerFunc = async (event) => {
@@ -127,30 +127,55 @@ export const readProduct = async (event) => {
 export const updateProduct = async (event) => {
   const id = event.pathParameters?.id;
   const reqBody = JSON.parse(event.body);
-
-  const result = await getProductById(id);
-
-  if (!result) {
-    return {
-      statusCode: 404,
-      headers,
-      body: JSON.stringify({ error: 'product not found' })
-    };
-  };
-
+  let addedFirstAttr = false;
+  let updateExpr = "SET ";
+  let exprAttrValues = {};
+  let exprAttrNames = {};
   const newProduct = {
-      ...reqBody,
-      id: id
+    id: id
   };
 
-  await putProduct(newProduct);
+  for (const field of allowedFields) {
+    if (reqBody[field]) {
+      if (addedFirstAttr) {
+        updateExpr += `, #${field} = :new_${field}`;
+      } else {
+        updateExpr += ` #${field} = :new_${field}`;
+      }
+      addedFirstAttr = true;
+      exprAttrValues[`:new_${field}`] = reqBody[field];
+      exprAttrNames[`#${field}`] = field;
+      newProduct[field] = reqBody[field];
+    }
+  }
+  console.log(updateExpr);
+  console.log(exprAttrValues);
+
+  if (!addedFirstAttr) {
+    return {
+    statusCode: 200,
+    headers,
+    body: "",
+  };
+  }
+
+  const command = new UpdateCommand({
+    TableName: tableName,
+    Key: {
+      id: id
+    },
+    UpdateExpression: updateExpr,
+    ExpressionAttributeNames: exprAttrNames,
+    ExpressionAttributeValues: exprAttrValues
+  });
+
+  await docClient.send(command);
 
   return {
     statusCode: 200,
     headers,
     body: JSON.stringify(newProduct),
   };
-
 };
 
 export const deleteProduct = async (event) => {
