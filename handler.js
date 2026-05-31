@@ -9,6 +9,7 @@ const tableName = 'ProductsTable';
 const headers = {
   'content-type': 'application/json'
 };
+const allowedFields = ['name', 'description', 'price', 'category', 'createDate']
 
 const getProductById = async (productId) => {
   const command = new GetCommand({
@@ -71,13 +72,30 @@ export const authorizerFunc = async (event) => {
 
 export const createProduct = async (event) => {
   const reqBody = JSON.parse(event.body);
+
+  if (!reqBody['name'] || typeof reqBody['name'] != 'string') {
+    return {
+      statusCode: 400,
+      body: 'Invalid data'
+    };
+  }
   
   const newProduct = {
-      id: v4(),
-      ...reqBody,
+      id: v4()
   };
 
-  await putProduct(newProduct);
+  for (const field of allowedFields) {
+    if (reqBody[field]) {
+      newProduct[field] = reqBody[field];
+    }
+  }
+
+  const command = new PutCommand({
+    TableName: tableName,
+    Item: newProduct
+  });
+
+  const response = await docClient.send(command);
 
   return {
     statusCode: 201,
